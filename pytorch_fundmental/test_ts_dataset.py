@@ -4,11 +4,10 @@ dataset 和 transform的联合使用
 
 import torchvision
 import ssl
+from torch.utils.tensorboard import SummaryWriter
 
 # 全局取消证书验证  否则会报错
 # 这里是个坑 很多需要联网下载报错都和这个ssl有关系
-from torch.utils.tensorboard import SummaryWriter
-
 ssl._create_default_https_context = ssl._create_unverified_context
 
 dataset_transform = torchvision.transforms.Compose([
