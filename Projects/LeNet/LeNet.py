@@ -10,47 +10,37 @@ LeNet architecture:
 """
 
 
-class LeNet(nn.Module):
-    def __init__(self):
-        super(LeNet, self).__init__()
-        # 这里激活函数 直接就用Relu了 当时由于时代局限性还没有
-        self.relu = nn.ReLU()
-        self.pool = nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2))
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0))
-        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0))
-        self.conv3 = nn.Conv2d(in_channels=16, out_channels=120, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0))
-        self.linear1 = nn.Linear(120, 84)
-        self.linear2 = nn.Linear(84, 10)
-
-        self.model = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
-            nn.ReLU(),
-            nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
-            nn.Conv2d(in_channels=6, out_channels=16, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
-            nn.ReLU(),
-            nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
-            nn.Conv2d(in_channels=16, out_channels=120, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
-            nn.ReLU(),
-            nn.Flatten(),
-            nn.Linear(120, 84),
-            nn.ReLU(),
-            nn.Linear(84, 10),
-        )
+class Reshape(torch.nn.Module):
+    """
+        将输入转换为批量数不变 通道数为1   28x28
+    """
 
     def forward(self, x):
-        # x = self.relu(self.conv1(x))
-        # x = self.pool(x)
-        # x = self.relu(self.conv2(x))
-        # x = self.pool(x)
-        # x = self.relu(self.conv3(x))
-        # x = x.reshape(x.shape[0], -1)
-        # x = self.relu(self.linear1(x))
-        # x = self.linear2(x)
-        x = self.model(x)
-        return x
+        return x.view(-1, 1, 28, 28)
 
 
-x = torch.randn(size=(64, 1, 32, 32))
-model = LeNet()
+net = torch.nn.Sequential(
+    Reshape(),
+    # 原始输入为32x32 但当前输入为28x28 所以padding=2 将两边补齐
+    nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(5, 5), padding=(2, 2)),
+    # 得到非线性 当时还没有ReLU 用的都是sigmoid
+    nn.ReLU(),
+    nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
+    nn.Conv2d(in_channels=6, out_channels=16, kernel_size=(5, 5)),
+    nn.ReLU(),
+    nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
+    # 卷积层出来为4维 最后将其转换1维的向量
+    nn.Flatten(),
+    # 最后一层 高和宽在池化后变为5x5 所以最后一层的输出是 16 x 5 x 5
+    nn.Linear(16 * 5 * 5, 120),
+    nn.ReLU(),
+    nn.Linear(120, 84),
+    nn.ReLU(),
+    nn.Linear(84, 10)
+)
 
-print(model(x).shape)
+X = torch.rand(size=(1, 1, 28, 28), dtype=torch.float32)
+# 由于是用Sequential建立 通过这种方法可以获得每层的输出
+for layer in net:
+    X = layer(X)
+    print(layer.__class__.__name__, 'output shape:\t', X.shape)
