@@ -58,4 +58,5 @@ for epoch in range(20):
         # 然后再调用optim 对模型的每一个参数进行调优
         optim.step()
         running_loss = running_loss + result_loss
+    # 可以发现每轮循环之后 running_loss 是在不断减少的
     print(running_loss)
