@@ -1,6 +1,8 @@
+import d2l.mxnet
 import torch
 # pytorch库中 提供的网络模型 nn.Linear , nn.Conv2d, BatchNorm, Loss Functions
 import torch.nn as nn
+from d2l import torch as nn
 
 """
 LeNet architecture:
@@ -44,3 +46,5 @@ X = torch.rand(size=(1, 1, 28, 28), dtype=torch.float32)
 for layer in net:
     X = layer(X)
     print(layer.__class__.__name__, 'output shape:\t', X.shape)
+
+
